@@ -1,0 +1,19 @@
+name: drive_sync
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - watchdog
+  - google-auth
+  - google-auth-oauthlib
+  - google-api-python-client
+  - pydantic
+  - sqlalchemy
+  - pip:
+      - google-auth-httplib2
+      - google-auth-oauthlib
+      - google-api-python-client
+      - watchdog
+      - google-resumable-media
