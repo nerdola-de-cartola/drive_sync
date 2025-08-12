@@ -60,7 +60,7 @@ def upload_file_to_drive(service, file: FileModel):
     try:
         media = MediaFileUpload(file.local_path, resumable=True)
     except Exception as e:
-        print(e)
+        print(f"[ERROR] Failed to upload file")
         return None
 
     uploaded_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
@@ -81,7 +81,7 @@ def get_drive_file_id_by_name(service, filename):
         else:
             return None
     except Exception as e:
-        print(f"[ERROR] Failed to get Drive ID for {filename}: {e}")
+        print(f"[ERROR] Failed to get Drive ID for {filename}")
         return None
 
 def get_or_create_drive_folder(service, folder_name, parent_id=None):
@@ -138,7 +138,7 @@ def delete_file(file: FileModel, service):
         service.files().delete(fileId=file.remote_id).execute()
         print(f"[DELETED] {file.local_path}")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"[ERROR] failed to delete file")
 
 def main():
     local_file = "/home/matheus-lucas/Downloads/events3.csv"

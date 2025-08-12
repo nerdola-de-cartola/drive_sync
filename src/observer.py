@@ -5,15 +5,10 @@ from database import get_session
 from file import FileModel
 from helpers import get_all_files_recursive, get_files_and_folders, init_db
 
-WATCH_DIRS = ["/home/matheus-lucas/Downloads"]
-
 class ChangeHandler(FileSystemEventHandler):
-    def __init__(self):
+    def __init__(self, db):
         super().__init__()
-        self.db = get_session()
-        files, folders = get_files_and_folders(WATCH_DIRS)
-        db = get_session()
-        init_db(files, db)
+        self.db = db
 
     def on_created(self, event):
         if event.is_directory or not os.path.exists(event.src_path):
@@ -29,7 +24,6 @@ class ChangeHandler(FileSystemEventHandler):
             if file:
                 file.deleted = True
                 self.db.commit()
-                self.db.flush()
             return
 
         files = get_all_files_recursive(event.src_path) # TODO get children
@@ -39,12 +33,10 @@ class ChangeHandler(FileSystemEventHandler):
             print(f"[DELETE] {file}")
 
 def main():
-    
     observer = Observer()
     handler = ChangeHandler()
 
-    for path in WATCH_DIRS:
-        observer.schedule(handler, path, recursive=True)
+    observer.schedule(handler, "/home/matheus-lucas/Downloads", recursive=True)
 
     observer.start()
     print("[WATCHING] Directories...")

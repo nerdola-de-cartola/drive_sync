@@ -131,8 +131,8 @@ class FileModel(Base):
         return False
     
     def delete_from_remote(self, service, db: Session):
-        from drive import delete_file_by_id
-        delete_file_by_id(self.remote_id, service)
+        from drive import delete_file
+        delete_file(self, service)
         db.delete(self)
         db.commit()
 
