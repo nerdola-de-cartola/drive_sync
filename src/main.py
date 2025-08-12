@@ -19,18 +19,25 @@ def main():
 
     files, folders = get_files_and_folders(directories_to_watch)
     service = get_drive_service()
-    db = get_session()
-
-    init_db(files, db)
+    init_db(files, get_session())
+    print("Init Database")
 
     while True:
-        print("Fetching files")
+        db = get_session()
+        #print("Fetching files")
         files = FileModel.get_all(db)
 
         for file in files:
-            file.link_with_remote(service, db)
-            if file.need_to_update():
-                file.upload_to_drive(service, db)\
+            try:
+                file.link_with_remote(service, db)
+
+                if file.deleted:
+                    file.delete_from_remote(service, db)
+
+                if file.need_to_update():
+                    file.upload_to_drive(service, db)
+            except Exception as e:
+                pass
                 
         time.sleep(5)
         

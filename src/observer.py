@@ -27,8 +27,9 @@ class ChangeHandler(FileSystemEventHandler):
             print(f"[DELETE] {event.src_path}")
             file = self.db.query(FileModel).filter_by(local_path=event.src_path).first()
             if file:
-                self.db.delete(file)
+                file.deleted = True
                 self.db.commit()
+                self.db.flush()
             return
 
         files = get_all_files_recursive(event.src_path) # TODO get children

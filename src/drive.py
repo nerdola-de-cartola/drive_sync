@@ -18,7 +18,7 @@ def update_file_on_drive(service, file: FileModel):
     if not file.remote_id:
         raise Exception("File does not have a remote id")
 
-    print(f'[UPDATE] {file.local_path} - Replacing remote file.')
+    print(f'[UPDATE] {file.local_path}')
     media = MediaFileUpload(file.local_path, resumable=True)
     updated = service.files().update(
         fileId=file.remote_id,
@@ -64,7 +64,7 @@ def upload_file_to_drive(service, file: FileModel):
         return None
 
     uploaded_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    print(f'[UPLOADED] {file.local_path} → Drive ID: {uploaded_file.get("id")}')
+    print(f'[UPLOADED] {file.local_path}')
     return uploaded_file.get("id")
 
 def get_drive_file_id_by_name(service, filename):
@@ -128,6 +128,17 @@ def ensure_drive_path(service, remote_path):
     for part in parts:
         parent_id = get_or_create_drive_folder(service, part, parent_id)
     return parent_id
+
+def delete_file(file: FileModel, service):
+    """
+    Deletes a file from Google Drive by its ID.
+    """
+
+    try:
+        service.files().delete(fileId=file.remote_id).execute()
+        print(f"[DELETED] {file.local_path}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def main():
     local_file = "/home/matheus-lucas/Downloads/events3.csv"

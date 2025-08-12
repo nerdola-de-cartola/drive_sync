@@ -1,11 +1,10 @@
 import os
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import Session
 import hashlib
 from database import Base, get_session
 from datetime import datetime, timedelta, timezone
 from typing import ClassVar
-import time
 
 def calculate_checksum(file_path: str, chunk_size: int = 8192):
     """Calculate MD5 checksum of local file."""
@@ -29,6 +28,7 @@ class FileModel(Base):
     last_upload = Column(DateTime, nullable=True)
     remote_id = Column(String, nullable=True)
     remote_folder_id = Column(String, nullable=True)
+    deleted = Column(Boolean, nullable=False, default=False)
     # created_time = Column(DateTime, default=datetime.utcnow)
     # last_update_time = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -126,10 +126,15 @@ class FileModel(Base):
         diff = local_update - remote_update
 
         if diff > timedelta(minutes=5):
-            print(f"Need to update {self.local_path} {diff}")
             return True
         
         return False
+    
+    def delete_from_remote(self, service, db: Session):
+        from drive import delete_file_by_id
+        delete_file_by_id(self.remote_id, service)
+        db.delete(self)
+        db.commit()
 
     def __str__(self) -> str:
         return (
