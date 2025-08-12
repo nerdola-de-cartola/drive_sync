@@ -32,7 +32,7 @@ def init_db(files: List[str], db: Session):
 
     db.commit()
     count = db.query(FileModel).count()
-    print(f"Inserted {count} files into database")
+    print(f"{count} files in database")
 
 def get_files_and_folders(directories_to_watch):
     files = []
@@ -43,3 +43,17 @@ def get_files_and_folders(directories_to_watch):
         folders += get_all_folders_recursive(dir)
 
     return (files, folders)
+
+def need_update(local_file: FileModel, service):
+    from drive import ensure_drive_path, get_remote_file
+    folder_id = ensure_drive_path(service, local_file.remote_folder)
+    filename = os.path.basename(local_file.local_path)
+
+    remote_file = get_remote_file(service, folder_id, filename)
+    local_size = os.path.getsize(local_file.local_path)
+    remote_size = int(remote_file.get('size', -1))
+
+    if local_size == remote_size and local_file.get_checksum() == remote_file.get("md5Checksum"):
+        return False
+
+    return True

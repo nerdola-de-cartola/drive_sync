@@ -4,31 +4,35 @@ from auth import get_drive_service
 from file import FileModel
 
 
-def get_remote_file_if_exists(service, folder_id: str, filename: str):
+def get_remote_file(service, folder_id: str, filename: str):
     """Verifica se já existe um arquivo com o nome na pasta remota."""
     query = (
         f"'{folder_id}' in parents and "
         f"name = '{filename}' and trashed = false"
     )
-    results = service.files().list(q=query, spaces='drive', fields='files(id, name, size, md5Checksum)').execute()
+    results = service.files().list(q=query, spaces='drive', fields='files(id, name, size, md5Checksum, modifiedTime)').execute()
     files = results.get('files', [])
     return files[0] if files else None
 
-def update_file_on_drive(service, file: FileModel, remote_file):
+def update_file_on_drive(service, file: FileModel):
+    if not file.remote_id:
+        raise Exception("File does not have a remote id")
+
     print(f'[UPDATE] {file.local_path} - Replacing remote file.')
     media = MediaFileUpload(file.local_path, resumable=True)
     updated = service.files().update(
-        fileId=remote_file['id'],
+        fileId=file.remote_id,
         media_body=media
     ).execute()
     return updated['id']
 
-def upload_file_to_drive_if_different(service, file: FileModel):
+# Retorna o id remoto do arquivo
+def upload_file_to_drive_if_different(service, file: FileModel) -> str:
     folder_id = ensure_drive_path(service, file.remote_folder)
     filename = os.path.basename(file.local_path)
 
     # Verifica se o arquivo já existe
-    existing_file = get_remote_file_if_exists(service, folder_id, filename)
+    existing_file = get_remote_file(service, folder_id, filename)
 
     if existing_file:
         local_size = os.path.getsize(file.local_path)
@@ -52,7 +56,13 @@ def upload_file_to_drive(service, file: FileModel):
         'name': os.path.basename(file.local_path),
         'parents': [folder_id]
     }
-    media = MediaFileUpload(file.local_path, resumable=True)
+
+    try:
+        media = MediaFileUpload(file.local_path, resumable=True)
+    except Exception as e:
+        print(e)
+        return None
+
     uploaded_file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
     print(f'[UPLOADED] {file.local_path} → Drive ID: {uploaded_file.get("id")}')
     return uploaded_file.get("id")
