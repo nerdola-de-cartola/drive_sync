@@ -1,6 +1,7 @@
 import os
 import time
 from typing import List
+from dotenv import load_dotenv
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from googleapiclient.http import MediaFileUpload
@@ -10,6 +11,9 @@ from database import get_session
 from helpers import get_files_and_folders, init_db
 from observer import ChangeHandler
 from sqlalchemy.orm import Session
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def handle_file(file: FileModel, service, db: Session):
@@ -25,9 +29,13 @@ def handle_file(file: FileModel, service, db: Session):
         pass
                 
 def main():
-    directories_to_watch = [
-        "/home/matheus-lucas/Downloads",
-    ]
+    # Use environment variable or default to container path
+    watch_dir = os.getenv('WATCH_DIR', 'Downloads/')
+    directories_to_watch = [watch_dir] if os.path.exists(watch_dir) else []
+
+    if len(directories_to_watch) == 0:
+        print("No directories to watch")
+        return
 
     files, folders = get_files_and_folders(directories_to_watch)
     service = get_drive_service()
@@ -40,7 +48,7 @@ def main():
         observer.schedule(handler, path, recursive=True)
 
     observer.start()
-    print("[WATCHING] Directories...")
+    print(f"[WATCHING] Directories {directories_to_watch}")
 
     try:
         while True:

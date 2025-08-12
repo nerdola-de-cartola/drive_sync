@@ -1,11 +1,17 @@
 import os
 import pickle
+from dotenv import load_dotenv
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
-TOKEN_PICKLE = 'token.pickle'
-CREDENTIALS_JSON = 'credentials.json'
+# Load environment variables from .env file
+load_dotenv()
+
+# Use containerized paths or fall back to current directory
+CREDENTIALS_DIR = os.getenv('CREDENTIALS_DIR', 'credentials/')
+TOKEN_PICKLE = os.path.join(CREDENTIALS_DIR, 'token.pickle')
+CREDENTIALS_JSON = os.path.join(CREDENTIALS_DIR, 'credentials.json')
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 def get_drive_service():

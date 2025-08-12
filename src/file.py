@@ -1,10 +1,14 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import Session
 import hashlib
 from database import Base, get_session
 from datetime import datetime, timedelta, timezone
 from typing import ClassVar
+
+# Load environment variables from .env file
+load_dotenv()
 
 def calculate_checksum(file_path: str, chunk_size: int = 8192):
     """Calculate MD5 checksum of local file."""
@@ -18,7 +22,7 @@ def calculate_checksum(file_path: str, chunk_size: int = 8192):
 
 class FileModel(Base):
     __tablename__ = 'files'
-    super_folder: ClassVar[str] = "/home/matheus-lucas/"
+    super_folder: ClassVar[str] = os.getenv('SUPER_FOLDER', 'watch/')
 
     id = Column(Integer, primary_key=True)
     local_path = Column(String, unique=True, nullable=False)
