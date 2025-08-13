@@ -31,7 +31,7 @@ def handle_file(file: FileModel, service, db: Session):
 def main():
     # Use environment variable or default to container path
     watch_dir = os.getenv('WATCH_DIR', 'Downloads/')
-    directories_to_watch = [watch_dir] if os.path.exists(watch_dir) else []
+    directories_to_watch = [dir for dir in watch_dir.split(":")]
 
     if len(directories_to_watch) == 0:
         print("No directories to watch")

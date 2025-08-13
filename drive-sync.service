@@ -1,0 +1,30 @@
+[Unit]
+Description=Google Drive Sync Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=matheus-lucas
+Group=matheus-sd
+WorkingDirectory=/home/matheus-lucas/drive_sync
+Environment=PATH=/home/matheus-lucas/miniconda3/envs/drive_sync/bin:/home/matheus-lucas/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/matheus-lucas/miniconda3/envs/drive_sync/bin/python /home/matheus-lucas/drive_sync/src/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=drive-sync
+
+# Environment file
+EnvironmentFile=-/home/matheus-lucas/drive_sync/.env
+
+# Security settings
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+
+[Install]
+WantedBy=multi-user.target
